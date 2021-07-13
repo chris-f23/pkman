@@ -1,0 +1,36 @@
+{
+  "name": "pkman",
+  "version": "1.0.0",
+  "description": "A discord bot that let's you manage your Pokémon",
+  "main": "./src/index.js",
+  "scripts": {
+    "start": "node main",
+    "test": "nodemon main"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chris-f23/pkman.git"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "discordjs",
+    "pokemon",
+    "pokémon",
+    "manager",
+    "simple"
+  ],
+  "author": "Christian Farías Águila",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/chris-f23/pkman/issues"
+  },
+  "homepage": "https://github.com/chris-f23/pkman#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.12"
+  },
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "dotenv": "^10.0.0"
+  }
+}
