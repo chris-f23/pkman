@@ -4,7 +4,7 @@
   "description": "A discord bot that let's you manage your Pokémon",
   "main": "./src/index.js",
   "scripts": {
-    "start": "node main",
+    "start": "node ./src/index.js",
     "test": "nodemon main"
   },
   "repository": {

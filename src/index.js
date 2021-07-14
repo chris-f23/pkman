@@ -5,13 +5,12 @@ const { cargarComandos } = require('./setup');
 const Discord = require('discord.js');
 
 try {
-    const comandos = cargarComandos() || new Map();
+    const comandos = cargarComandos();
     console.log("> Comandos registrados:", comandos.entries());
 
     const client = new Discord.Client();
 
     client.on('ready', () => {
-        client.user.setStatus('online');
         console.log("> Bot conectado, escuchando solicitudes...");
     });
 
