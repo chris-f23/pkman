@@ -55,7 +55,7 @@ const embeberPokemonSeleccionado = (pokemon, entrenador) => {
         `🆔 **ID**: ${pokemon.id}`,
         `💠 **TIPO**: ${pokemon.type.toString().replace(",", "/")}`,
         `🏃‍♂️ **ENTRENADOR**: ${entrenador}\n`,
-        ...stats
+        ...stats, "\n"
     ];
 
     let imagenSrc = pokemon.id.toString();
@@ -67,17 +67,18 @@ const embeberPokemonSeleccionado = (pokemon, entrenador) => {
     
     return new Discord.MessageEmbed()
         .setTitle("El pokemon que elegiste fue...")
+        .setImage(`https://img.pokemondb.net/sprites/home/normal/${pokemon.name.toLowerCase()}.png`)
         .setDescription(datos)
-        .setImage(`https://www.serebii.net/pokemongo/pokemon/${imagenSrc}.png`)
-        .setThumbnail(`https://www.serebii.net/pokemongo/pokemon/${imagenSrc}.png`)
+        // .setImage(`https://www.serebii.net/pokemongo/pokemon/${imagenSrc}.png`)
+        .setImage(`https://img.pokemondb.net/sprites/home/normal/${pokemon.name.toLowerCase()}.png`)
+        .setThumbnail(`https://img.pokemondb.net/sprites/sword-shield/icon/${pokemon.name.toLowerCase()}.png`)
         .setColor("#5cb85c");
 }
 
 const embeberErrorInterno = (error) =>
     new Discord.MessageEmbed()
-        .setTitle("Error interno!")
-        .setDescription("Ha ocurrido un error interno.")
-        .setFooter(`> ${error.message}`)
+        .setTitle("Ha ocurrido un error!")
+        .setDescription(error.message)
         .setColor("#d9534f");
 
 const embeberTiempoAgotado = () =>
@@ -96,7 +97,8 @@ const embeberElegirPokemon = (opciones, tiempoEspera) =>
         .setColor("#0275d8");
 
 function obtenerPokemonsRandom(cantidad = 3) {
-    if (cantidad < 1 || cantidad > 9) throw new Error("La cantidad de pokemon a obtener debe ser entre 1 y 9.");
+    if (isNaN(cantidad)) throw new Error("La cantidad especificada debe ser un numero entre 3 y 9.")
+    if (cantidad < 3 || cantidad > 9) throw new Error("La cantidad especificada debe ser un numero entre 3 y 9.");
 
     let pokemons = []
     for (let index = 0; index < cantidad; index++) {
@@ -109,8 +111,15 @@ function obtenerPokemonsRandom(cantidad = 3) {
 
 module.exports.run = async (client, message, args) => {
     try {
-        let pokemons = obtenerPokemonsRandom();
-        let tiempoEspera = 10000;
+        // El primer parametro especifica la cantidad de opciones (3 por defecto).
+        let cantidadOpciones = 3;
+        if (args[0] !== undefined) {
+            cantidadOpciones = parseInt(args[0]);
+        }
+        
+        let pokemons = obtenerPokemonsRandom(cantidadOpciones);
+        // Tiempo de espera por defecto = 10 segundos (+2 segundos por opciones sobre 3).
+        let tiempoEspera = 10000 + (2000 * (cantidadOpciones - 3));
 
         let _msjElegirPokemon = await message.reply(embeberElegirPokemon(pokemons, tiempoEspera));
 
