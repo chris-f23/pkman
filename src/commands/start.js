@@ -33,6 +33,37 @@ function convertirEmojiEnDigito(emoji) {
     }
 }
 
+function convertirTiposEnEmoji(tipos) {
+    if (tipos.length === 0) return '❔';
+
+    return tipos.map((tipo) => {
+        let emoji = '❔';
+        switch (tipo) {
+            case 'Grass': emoji = '🍃'; break;
+            case 'Poison': emoji = '☠️'; break;
+            case 'Fire': emoji = '🔥'; break;
+            case 'Flying': emoji = '✈️'; break;
+            case 'Water': emoji = '🌊'; break;
+            case 'Bug': emoji = '🐞'; break;
+            case 'Normal': emoji = '✋'; break;
+            case 'Electric': emoji = '⚡'; break;
+            case 'Ground': emoji = '🪨'; break;
+            case 'Stone': emoji = '🗿'; break;
+            case 'Psychic': emoji = '🔮'; break;
+            case 'Steel': emoji = '🔧'; break;
+            case 'Ice': emoji = '🧊'; break;
+            case 'Fighting': emoji = '👊'; break;
+            case 'Fairy': emoji = '🧚'; break;
+            case 'Ghost': emoji = '👻'; break;
+            case 'Dragon': emoji = '🐲'; break;
+            case 'Dark': emoji = '🌑'; break;
+            default:
+                break;
+        }
+        return `${emoji} ${tipo}`;
+    }).join('/ ');
+}
+
 const embeberPokemonSeleccionado = (pokemon, entrenador) => {
     let stats = Object.entries(pokemon.base).map(([key, value]) => {
         let nombreStat = '❔: ';
@@ -43,7 +74,7 @@ const embeberPokemonSeleccionado = (pokemon, entrenador) => {
             case 's_atk': nombreStat = '🔸 S. ARK: '; break;
             case 's_def': nombreStat = '🔹 S. DEF: '; break;
             case 'spd': nombreStat = '🎇 SPD: '; break;
-        
+
             default:
                 break;
         }
@@ -53,18 +84,17 @@ const embeberPokemonSeleccionado = (pokemon, entrenador) => {
     let datos = [
         `🏷️ **POKEMON**: ${pokemon.name}`,
         `🆔 **ID**: ${pokemon.id}`,
-        `💠 **TIPO**: ${pokemon.type.toString().replace(",", "/")}`,
-        `🏃‍♂️ **ENTRENADOR**: ${entrenador}\n`,
+        `📌 **TIPO**: ${convertirTiposEnEmoji(pokemon.type)}\n`,
         ...stats, "\n"
     ];
 
-    let imagenSrc = pokemon.id.toString();
-    if (imagenSrc.length === 1) {
-        imagenSrc = "00" + imagenSrc;
-    } else if (imagenSrc.length === 2) {
-        imagenSrc = "0" + imagenSrc;
-    }
-    
+    // let imagenSrc = pokemon.id.toString();
+    // if (imagenSrc.length === 1) {
+    //     imagenSrc = "00" + imagenSrc;
+    // } else if (imagenSrc.length === 2) {
+    //     imagenSrc = "0" + imagenSrc;
+    // }
+
     return new Discord.MessageEmbed()
         .setTitle("El pokemon que elegiste fue...")
         .setImage(`https://img.pokemondb.net/sprites/home/normal/${pokemon.name.toLowerCase()}.png`)
@@ -72,6 +102,7 @@ const embeberPokemonSeleccionado = (pokemon, entrenador) => {
         // .setImage(`https://www.serebii.net/pokemongo/pokemon/${imagenSrc}.png`)
         .setImage(`https://img.pokemondb.net/sprites/home/normal/${pokemon.name.toLowerCase()}.png`)
         .setThumbnail(`https://img.pokemondb.net/sprites/sword-shield/icon/${pokemon.name.toLowerCase()}.png`)
+        .setFooter(`🏃‍♂️ ENTRENADOR: ${entrenador}\n`)
         .setColor("#5cb85c");
 }
 
@@ -116,7 +147,7 @@ module.exports.run = async (client, message, args) => {
         if (args[0] !== undefined) {
             cantidadOpciones = parseInt(args[0]);
         }
-        
+
         let pokemons = obtenerPokemonsRandom(cantidadOpciones);
         // Tiempo de espera por defecto = 10 segundos (+2 segundos por opciones sobre 3).
         let tiempoEspera = 10000 + (2000 * (cantidadOpciones - 3));
@@ -127,7 +158,7 @@ module.exports.run = async (client, message, args) => {
         pokemons.forEach(async (pokemon, index) => {
             try {
                 await _msjElegirPokemon.react(convertirDigitoEnEmoji(index + 1));
-            } catch (error) {}
+            } catch (error) { }
         });
 
         // Filtrar solo las reacciones del autor del comando y las reacciones que estén dentro de las opciones.
