@@ -1,5 +1,7 @@
 const Discord = require('discord.js');
+const { embeberErrorInterno, embeberTiempoAgotado } = require('../common_embeds.js');
 const pokemonData = require('../../fanzeyi-pokedex.json');
+const config = require('../../config.json');
 
 function convertirDigitoEnEmoji(digito) {
     switch (digito) {
@@ -71,7 +73,7 @@ const embeberPokemonSeleccionado = (pokemon, entrenador) => {
             case 'hp': nombreStat = '❤️ HP: '; break;
             case 'atk': nombreStat = '🗡️ ATK: '; break;
             case 'def': nombreStat = '🛡️ DEF: '; break;
-            case 's_atk': nombreStat = '🔸 S. ARK: '; break;
+            case 's_atk': nombreStat = '🔸 S. ATK: '; break;
             case 's_def': nombreStat = '🔹 S. DEF: '; break;
             case 'spd': nombreStat = '🎇 SPD: '; break;
 
@@ -88,13 +90,6 @@ const embeberPokemonSeleccionado = (pokemon, entrenador) => {
         ...stats, "\n"
     ];
 
-    // let imagenSrc = pokemon.id.toString();
-    // if (imagenSrc.length === 1) {
-    //     imagenSrc = "00" + imagenSrc;
-    // } else if (imagenSrc.length === 2) {
-    //     imagenSrc = "0" + imagenSrc;
-    // }
-
     return new Discord.MessageEmbed()
         .setTitle("El pokemon que elegiste fue...")
         .setImage(`https://img.pokemondb.net/sprites/home/normal/${pokemon.name.toLowerCase()}.png`)
@@ -103,20 +98,8 @@ const embeberPokemonSeleccionado = (pokemon, entrenador) => {
         .setImage(`https://img.pokemondb.net/sprites/home/normal/${pokemon.name.toLowerCase()}.png`)
         .setThumbnail(`https://img.pokemondb.net/sprites/sword-shield/icon/${pokemon.name.toLowerCase()}.png`)
         .setFooter(`🏃‍♂️ ENTRENADOR: ${entrenador}\n`)
-        .setColor("#5cb85c");
+        .setColor(config.colors.success);
 }
-
-const embeberErrorInterno = (error) =>
-    new Discord.MessageEmbed()
-        .setTitle("Ha ocurrido un error!")
-        .setDescription(error.message)
-        .setColor("#d9534f");
-
-const embeberTiempoAgotado = () =>
-    new Discord.MessageEmbed()
-        .setTitle("Tiempo agotado!")
-        .setDescription("Se ha agotado el tiempo, vuelve a intentarlo más tarde.")
-        .setColor("#fd7e14");
 
 const embeberElegirPokemon = (opciones, tiempoEspera) =>
     new Discord.MessageEmbed()
@@ -125,11 +108,11 @@ const embeberElegirPokemon = (opciones, tiempoEspera) =>
             opciones.map((opcion, index) => {
                 return `${convertirDigitoEnEmoji(index + 1)}: ${opcion.name}`;
             }))
-        .setColor("#0275d8");
+        .setColor(config.colors.primary);
 
 function obtenerPokemonsRandom(cantidad = 3) {
-    if (isNaN(cantidad)) throw new Error("La cantidad especificada debe ser un numero entre 3 y 9.")
-    if (cantidad < 3 || cantidad > 9) throw new Error("La cantidad especificada debe ser un numero entre 3 y 9.");
+    if (isNaN(cantidad) || cantidad < 3 || cantidad > 9)
+        throw new Error("La cantidad especificada debe ser un numero entre 3 y 9.")
 
     let pokemons = []
     for (let index = 0; index < cantidad; index++) {
@@ -140,56 +123,66 @@ function obtenerPokemonsRandom(cantidad = 3) {
     return pokemons;
 }
 
-module.exports.run = async (client, message, args) => {
-    try {
-        // El primer parametro especifica la cantidad de opciones (3 por defecto).
-        let cantidadOpciones = 3;
-        if (args[0] !== undefined) {
-            cantidadOpciones = parseInt(args[0]);
-        }
+/**
+ * El comando 'start' envia un mensaje en donde se puede elegir a 
+ * 1 de entre 3 pokemons (o entre una cantidad especificada por parametro).
+ * Luego de elegirlo, se envia un mensaje con la información del pokemon elegido.
+ */
+module.exports.run = (client, message, args) => {
+    // El primer parametro especifica la cantidad de opciones (3 por defecto).
+    let cantidadOpciones = 3;
+    if (args[0] !== undefined) {
+        cantidadOpciones = parseInt(args[0]);
+    }
 
-        let pokemons = obtenerPokemonsRandom(cantidadOpciones);
-        // Tiempo de espera por defecto = 10 segundos (+2 segundos por opciones sobre 3).
-        let tiempoEspera = 10000 + (2000 * (cantidadOpciones - 3));
+    let pokemons = obtenerPokemonsRandom(cantidadOpciones);
 
-        let _msjElegirPokemon = await message.reply(embeberElegirPokemon(pokemons, tiempoEspera));
+    // Tiempo de espera por defecto = 10 segundos (+2 segundos por opciones sobre 3).
+    let tiempoEspera = 10000 + (2000 * (cantidadOpciones - 3));
 
-        // Agregar reacciones para cada opcion.
-        pokemons.forEach(async (pokemon, index) => {
-            try {
-                await _msjElegirPokemon.react(convertirDigitoEnEmoji(index + 1));
-            } catch (error) { }
-        });
-
-        // Filtrar solo las reacciones del autor del comando y las reacciones que estén dentro de las opciones.
-        const filtroReacciones = (reaccion, usuario) => {
-            return usuario == message.author &&
-                pokemons.map((pokemon, index) => convertirDigitoEnEmoji(index + 1))
-                    .includes(reaccion.emoji.name);
-        }
-
-        // Crear el colector de reacciones. Terminar cuando se seleccione una reaccion o cuando se acabe el tiempo.
-        let colectorReacciones = new Discord.ReactionCollector(_msjElegirPokemon, filtroReacciones, { max: 1, time: tiempoEspera });
-        colectorReacciones.on('end', (collected, reason) => {
-            // Si se acaba el tiempo, notificar al usuario y borrar el mensaje.
-            if (reason === "time") {
-                message.channel.send(embeberTiempoAgotado());
-                _msjElegirPokemon.delete();
-                return;
+    message.reply(
+        embeberElegirPokemon(pokemons, tiempoEspera))
+        .then(_msjElegirPokemon => {
+            // Agregar reacciones para cada opcion.
+            for (let index = 0; index < pokemons.length; index++) {
+                _msjElegirPokemon.react(convertirDigitoEnEmoji(index + 1))
+                    .catch(error => { });
             }
 
-            let seleccion = convertirEmojiEnDigito(collected.array()[0].emoji.name) - 1;
-            message.channel.send(embeberPokemonSeleccionado(pokemons[seleccion], message.author.tag));
-            _msjElegirPokemon.delete();
-        });
-    } catch (error) {
-        console.error(error);
+            // Filtrar solo las reacciones del autor del comando y las reacciones que estén dentro de las opciones.
+            const filtroReacciones = (reaccion, usuario) => {
+                return usuario == message.author &&
+                    pokemons.map((pokemon, index) => convertirDigitoEnEmoji(index + 1))
+                        .includes(reaccion.emoji.name);
+            }
 
-        try {
-            // Intentar notificar al usuario
-            message.channel.send(embeberErrorInterno(error));
-        } catch (_error) {
-            console.log("> No se pudo notificar al usuario sobre el error.");
-        }
-    }
+            // Crear el colector de reacciones. Terminar cuando se seleccione una reaccion o cuando se acabe el tiempo.
+            let colectorReacciones = new Discord.ReactionCollector(_msjElegirPokemon, filtroReacciones, { max: 1, time: tiempoEspera });
+
+            colectorReacciones.on('end', (collected, reason) => {
+                // Si se acaba el tiempo, notificar al usuario. Si no, mostrar el pokemon seleccionado.
+                if (reason === "time") {
+                    message.channel.send(embeberTiempoAgotado());
+                } else {
+                    let seleccion = convertirEmojiEnDigito(collected.array()[0].emoji.name) - 1;
+                    message.channel.send(embeberPokemonSeleccionado(pokemons[seleccion], message.author.tag));
+                }
+
+                // Finalmente, eliminar el mensaje de seleccion.
+                _msjElegirPokemon.delete()
+                    .catch(error => {
+                        console.log(`> Error controlado (${error.name}: ${error.message})`);
+                    });
+            });
+
+        })
+        .catch(error => {
+            try {
+                // Intentar notificar al usuario
+                console.error(error);
+                message.channel.send(embeberErrorInterno(error));
+            } catch (_error) {
+                console.log("> No se pudo notificar al usuario sobre el error.");
+            }
+        });
 }

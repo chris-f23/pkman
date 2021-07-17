@@ -1,3 +1,10 @@
 {
-    "prefix": "!pkman "
+    "prefix": "!pkman ",
+    "colors": {
+        "primary": "#0275d8",
+        "success": "#5cb85c",
+        "info": "#5bc0de",
+        "warning": "#fd7e14",
+        "error": "#d9534f"
+    }
 }
